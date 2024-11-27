@@ -4,8 +4,8 @@ from scipy.optimize import curve_fit
 import pandas as pd
 
 data = pd.read_csv('DLS_Fine.csv')
-x_data = data['Time (ms)'].values  # Replace 'x' with the actual column name for x values
-y_data = data['Energy (V)'].values  # Replace 'y' with the actual column name for y values
+x_data = data['Time (ms)'].values
+y_data = data['Energy (V)'].values
 
 # Define a Gaussian function for peak fitting
 def gaussian(x, a, x0, sigma):
