@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+import pandas as pd
+
+data = pd.read_csv('DLS_Fine.csv')
+x_data = data['x'].values  # Replace 'x' with the actual column name for x values
+y_data = data['y'].values  # Replace 'y' with the actual column name for y values
+
+# Define a Gaussian function for peak fitting
+def gaussian(x, a, x0, sigma):
+    return a * np.exp(-(x - x0)**2 / (2 * sigma**2))
+
+# Perform peak fitting for each observable peak
+initial_guesses = [1, 5.1, 0.1]  # Initial guesses for Gaussian parameters (amplitude, center, width)
+
+# List to store fitted parameters for each peak
+fitted_peaks = []
+
+# Split data into sections around each peak and fit individually (modify based on your data)
+peak_ranges = [(4.0, 4.5), (4.7, 4.9), (5.0, 5.2), (5.3, 5.4), (5.6, 5.7)]
+
+for peak_range in peak_ranges:
+    # Filter data for the current peak range
+    mask = (x_data >= peak_range[0]) & (x_data <= peak_range[1])
+    x_peak = x_data[mask]
+    y_peak = y_data[mask]
+    
+    # Fit the Gaussian to the current peak
+    popt, pcov = curve_fit(gaussian, x_peak, y_peak, p0=initial_guesses)
+    fitted_peaks.append(popt)
+    
+    # Plot the current peak and its fit
+    plt.plot(x_peak, y_peak, 'b-', label='Data')
+    plt.plot(x_peak, gaussian(x_peak, *popt), 'r--', label=f'Fitted Gaussian (Center: {popt[1]:.3f})')
+    plt.xlabel('Voltage or Frequency')
+    plt.ylabel('Signal Amplitude')
+    plt.legend()
+    plt.show()
+
+# Identifying Peaks with Hyperfine Transitions
+# Example: Assign each peak to a hyperfine transition based on its fitted center
+hyperfine_transitions = {
+    4.325: 'F = 1 -> F' = 2',
+    4.705: 'F = 2 -> F' = 3',
+    4.805: 'F = 1 -> F' = 1',
+    5.115: 'F = 2 -> F' = 2',
+    5.375: 'F = 1 -> F' = 0'
+}
+
+for peak in fitted_peaks:
+    center = peak[1]
+    closest_transition = min(hyperfine_transitions.keys(), key=lambda x: abs(x - center))
+    print(f'Peak at {center:.3f} V corresponds to hyperfine transition: {hyperfine_transitions[closest_transition]}')
